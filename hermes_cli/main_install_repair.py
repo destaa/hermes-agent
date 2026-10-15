@@ -319,6 +319,19 @@ def _is_termux_env(env: dict[str, str] | None = None) -> bool:
     return _is_termux_startup_environment(env)
 
 
+def _is_proot_env() -> bool:
+    import os
+    if os.environ.get("PROOT") or os.environ.get("PROOT_TMP_DIR"):
+        return True
+    try:
+        exe = os.readlink("/proc/self/exe")
+        if exe and "proot" in exe.lower():
+            return True
+    except OSError:
+        pass
+    return False
+
+
 def _is_windows_npm_path(npm_path: str) -> bool:
     """True if ``npm_path`` points at a Windows npm shim (WSL drive interop, ``.cmd``/``.exe``, UNC).
 

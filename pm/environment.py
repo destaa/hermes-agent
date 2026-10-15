@@ -244,6 +244,16 @@ def _base_environment(env: Mapping[str, str] | None = None) -> dict[str, str]:
             and (not key.startswith("UV_") or is_forwarded(key))}
     if env is None:
         base.update(bridged_index_settings(os.environ))
+
+    # Auto-set UV_LINK_MODE=copy in PRoot/Termux environments where uv's
+    # default hardlink mode fails across bind-mount boundaries.
+    if "UV_LINK_MODE" not in base and (
+        source.get("PROOT") or source.get("PROOT_TMP_DIR")
+        or (sys.platform == "linux" and os.path.isfile("/proc/self/exe")
+            and "proot" in os.readlink("/proc/self/exe").lower())
+    ):
+        base["UV_LINK_MODE"] = "copy"
+
     return base
 
 
